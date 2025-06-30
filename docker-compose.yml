@@ -1,0 +1,149 @@
+version: "3.4"
+
+name: ms-product
+
+services:
+  config-server:
+    container_name: config-server
+    build:
+      context: ./config-server
+    ports:
+      - "8888:8888"
+    networks:
+      - store-network
+
+  eureka-server:
+    container_name: eureka-server
+    build:
+      context: ./eureka-server
+    ports:
+      - "8761:8761"
+    depends_on:
+      - config-server
+    networks:
+      - store-network
+
+  gateway:
+    container_name: gateway
+    build:
+      context: ./gateway
+    ports:
+      - "8989:8989"
+    depends_on:
+      - config-server
+      # - eureka-server
+      - keycloak
+    networks:
+      - store-network
+
+  ms-product:
+    container_name: ms-product
+    build:
+      context: ./ms-product
+    ports:
+      - "8081:8081"
+    depends_on:
+      - config-server
+      # - eureka-server
+      - productdb
+      - keycloak
+    networks:
+      - store-network
+
+  productdb:
+    image: mongo:latest
+    container_name: productdb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    volumes:
+      - productdb_data:/data/db
+    restart: on-failure
+    networks:
+      - store-network
+
+  ms-manufacturer:
+    container_name: ms-manufacturer
+    build:
+      context: ./ms-manufacturer
+    ports:
+      - "8082:8082"
+    depends_on:
+      - config-server
+      # - eureka-server
+      - manufacturerdb
+      - keycloak
+    networks:
+      - store-network
+
+  manufacturerdb:
+    image: mysql:8.0
+    container_name: manufacturerdb
+    volumes:
+      - manufacturerdb_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: manufacturer_db
+    ports:
+      - "3306:3306"
+    restart: on-failure
+    networks:
+      - store-network
+
+  keycloakdb:
+    image: postgres
+    container_name: keycloakdb
+    restart: on-failure
+    ports:
+      - "5432:5432"
+    volumes:
+      - keycloakdb_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
+    networks:
+      - store-network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak
+    container_name: keycloak
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloakdb:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: password
+
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8080
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+
+      KC_LOG_LEVEL: info
+      KC_METRICS_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    command: start-dev
+    depends_on:
+      - config-server
+      - keycloakdb
+    ports:
+      - 18080:8080
+    restart: on-failure
+    networks:
+      - store-network
+
+volumes:
+  keycloakdb_data:
+    driver: local
+  manufacturerdb_data:
+    driver: local
+  productdb_data:
+    driver: local
+
+networks:
+  store-network:
+    driver: bridge
