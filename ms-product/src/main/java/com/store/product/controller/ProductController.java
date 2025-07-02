@@ -1,6 +1,7 @@
 package com.store.product.controller;
 
 import com.store.product.dto.ProductDto;
+import com.store.product.dto.ProductWithManufacturerDto;
 import com.store.product.service.ProductService;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +20,11 @@ public class ProductController {
     @GetMapping
     public List<ProductDto> getAllProducts() {
         return service.getAllProducts();
+    }
+
+    @GetMapping("/with-manufacturer")
+    public List<ProductWithManufacturerDto> getProductsWithManufacturers() {
+        return service.getProductsWithManufacturers();
     }
 
     @GetMapping("/{id}")

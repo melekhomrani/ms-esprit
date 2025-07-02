@@ -57,6 +57,12 @@
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
 
+        <!-- ms-product pom.xml -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+
         <!-- MapStruct -->
         <dependency>
             <groupId>org.mapstruct</groupId>
@@ -77,6 +83,14 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+
 
     </dependencies>
     <dependencyManagement>
@@ -105,7 +119,7 @@
                     </excludes>
                 </configuration>
             </plugin>
-            
+
             <!-- Maven Compiler Plugin with both Lombok and MapStruct -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
