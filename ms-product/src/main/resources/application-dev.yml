@@ -5,6 +5,12 @@ spring:
   application:
     name: ms-product
 
+  
+  # security:
+  #   oauth2:
+  #     resourceserver:
+  #       jwt:
+  #         issuer-uri: http://localhost:18080/realms/authentication
   data:
     mongodb:
       host: localhost
@@ -20,6 +26,14 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
   instance:
     hostname: localhost
+
+# keycloak credentials
+keycloak:
+  auth-server-url: http://localhost:18080
+  realm: camp-esprit
+  resource: express-app
+  secret: v0gREWBMXdIhgTI6GBkfzhcO5AcspCMK
+  bearer-only: true
 
 logging:
   level:

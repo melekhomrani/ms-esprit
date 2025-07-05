@@ -30,3 +30,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+node_modules/
+build/
+npm-debug.log
+.env
+.DS_Store

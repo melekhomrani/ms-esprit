@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Keycloak Test</title>
+</head>
+<body>
+    <h1>Keycloak Authentication Test</h1>
+    <div id="status">Initializing...</div>
+    <button id="loginBtn" style="display:none;">Login</button>
+    <button id="logoutBtn" style="display:none;">Logout</button>
+    <div id="userInfo" style="display:none;"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/keycloak-js@23.0.1/dist/keycloak.min.js"></script>
+    <script>
+        const statusDiv = document.getElementById('status');
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const userInfo = document.getElementById('userInfo');
+
+        console.log("Initializing Keycloak...");
+        statusDiv.textContent = "Initializing Keycloak...";
+
+        const keycloak = new Keycloak({
+            url: 'http://localhost:18080/',
+            realm: 'ms-esprit',
+            clientId: 'frontend'
+        });
+
+        keycloak.init({
+            onLoad: 'check-sso',
+            checkLoginIframe: false
+        }).then(function(authenticated) {
+            console.log("Keycloak initialized. Authenticated:", authenticated);
+            
+            if (authenticated) {
+                statusDiv.textContent = "Authenticated!";
+                logoutBtn.style.display = 'block';
+                userInfo.style.display = 'block';
+                userInfo.innerHTML = `
+                    <h3>User Info:</h3>
+                    <p>Username: ${keycloak.tokenParsed.preferred_username}</p>
+                    <p>Email: ${keycloak.tokenParsed.email || 'N/A'}</p>
+                `;
+            } else {
+                statusDiv.textContent = "Not authenticated";
+                loginBtn.style.display = 'block';
+            }
+        }).catch(function(error) {
+            console.error("Keycloak initialization failed:", error);
+            statusDiv.textContent = "Keycloak initialization failed: " + error;
+        });
+
+        loginBtn.onclick = function() {
+            keycloak.login();
+        };
+
+        logoutBtn.onclick = function() {
+            keycloak.logout();
+        };
+    </script>
+</body>
+</html>

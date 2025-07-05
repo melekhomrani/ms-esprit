@@ -21,6 +21,26 @@ spring:
               uri: lb://MS-MANUFACTURER
               predicates:
                 - Path=/api/manufacturers/**
+          globalcors:
+            corsConfigurations:
+              "[/**]":
+                allowedOrigins: "*"
+                allowedMethods: "*"
+                allowedHeaders: "*"
+                allowCredentials: false
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:18080/realms/authentication
+# keycloak credentials
+keycloak:
+  auth-server-url: http://localhost:18080
+  realm: camp-esprit
+  resource: express-app
+  secret: v0gREWBMXdIhgTI6GBkfzhcO5AcspCMK
+  bearer-only: true
 
 eureka:
   client:
