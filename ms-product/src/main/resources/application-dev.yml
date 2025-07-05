@@ -30,7 +30,7 @@ eureka:
 # keycloak credentials
 keycloak:
   auth-server-url: http://localhost:18080
-  realm: camp-esprit
+  realm: authentication
   resource: express-app
   secret: v0gREWBMXdIhgTI6GBkfzhcO5AcspCMK
   bearer-only: true
