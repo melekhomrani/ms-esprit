@@ -53,7 +53,7 @@ pipeline {
         failure {
             mail to: 'melek@store.com',
             subject: "Jenkins Pipeline Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-            body: "Check Jenkins: ${env.BUILD_URL}"
+            body: "The Jenkins pipeline for ${env.JOB_NAME} has failed. Please check the console output at ${env.BUILD_URL} to investigate the issue."
         }
     }
 }
