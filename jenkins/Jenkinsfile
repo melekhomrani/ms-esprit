@@ -51,4 +51,9 @@ pipeline {
             junit '**/target/surefire-reports/*.xml'
         }
     }
+    failure {
+        mail to: 'melek@store.com',
+            subject: "Jenkins Pipeline Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+            body: "Check Jenkins: ${env.BUILD_URL}"
+    }
 }
