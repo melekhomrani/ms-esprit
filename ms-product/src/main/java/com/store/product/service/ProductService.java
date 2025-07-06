@@ -3,7 +3,7 @@ package com.store.product.service;
 import com.store.dto.ManufacturerDto;
 import com.store.dto.ProductDto;
 import com.store.dto.ProductWithManufacturerDto;
-import com.store.product.feignClient.ManufacturerClient;
+import com.store.product.feign.ManufacturerClient;
 import com.store.product.mapper.ProductMapper;
 import com.store.product.model.Product;
 import com.store.product.repository.ProductRepository;
