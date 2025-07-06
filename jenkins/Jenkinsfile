@@ -1,0 +1,48 @@
+pipeline {
+    agent any
+
+    environment {
+        SONARQUBE_SERVER = 'SonarQube'
+        SONAR_TOKEN = credentials('sonar-token-id')
+    }
+
+    stages {
+        stage('Build') {
+            steps {
+                sh './scripts/build.sh'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh './scripts/test.sh'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv("${SONARQUBE_SERVER}") {
+                    sh './scripts/sonarqube.sh'
+                }
+            }
+        }
+
+        stage('Publish to Nexus') {
+            steps {
+                sh './scripts/nexus-deploy.sh'
+            }
+        }
+
+        stage('Deploy with Docker Compose') {
+            steps {
+                sh './scripts/deploy.sh'
+            }
+        }
+    }
+
+    post {
+        always {
+            junit '**/target/surefire-reports/*.xml'
+        }
+    }
+}
