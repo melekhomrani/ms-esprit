@@ -42,7 +42,6 @@ eureka:
   instance:
     hostname: localhost
 
-# Management endpoints
 management:
   endpoints:
     web:
@@ -51,4 +50,7 @@ management:
 
 logging:
   level:
-    com.store.product: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.web: DEBUG
+    com.store.gateway: DEBUG
