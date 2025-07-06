@@ -9,51 +9,60 @@ pipeline {
     stages {
         stage('Clone Config Server') {
             steps {
-                sh './scripts/clone-config-server.sh'
+                sh 'jenkins/scripts/clone-config-server.sh'
             }
         }
 
         stage('Build') {
             steps {
-                sh './scripts/build.sh'
+                sh 'jenkins/scripts/build.sh'
             }
         }
 
         stage('Test') {
             steps {
-                sh './scripts/test.sh'
+                sh 'jenkins/scripts/test.sh'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv("${SONARQUBE_SERVER}") {
-                    sh './scripts/sonarqube.sh'
+                    sh 'jenkins/scripts/sonarqube.sh'
                 }
             }
         }
 
         stage('Publish to Nexus') {
             steps {
-                sh './scripts/nexus-deploy.sh'
+                sh 'jenkins/scripts/nexus-deploy.sh'
             }
         }
 
         stage('Deploy with Docker Compose') {
             steps {
-                sh './scripts/deploy.sh'
+                sh 'jenkins/scripts/deploy.sh'
             }
         }
     }
 
     post {
-        // always {
-        //     junit '**/target/surefire-reports/*.xml'
-        // }
+        always {
+            script {
+                junit '**/target/surefire-reports/*.xml'
+            }
+        }
         failure {
             mail to: 'melek@store.com',
-            subject: "Jenkins Pipeline Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-            body: "The Jenkins pipeline for ${env.JOB_NAME} has failed. Please check the console output at ${env.BUILD_URL} to investigate the issue."
+                subject: "🚨 Jenkins Pipeline Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """\
+                            The Jenkins pipeline for ${env.JOB_NAME} has failed.
+
+                            Check details and console output:
+                            ${env.BUILD_URL}
+
+                            Action is required.
+                            """
         }
     }
 }
