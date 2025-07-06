@@ -20,6 +20,7 @@
         <module>gateway</module>
         <module>ms-product</module>
         <module>ms-manufacturer</module>
+        <module>ms-notification</module>
     </modules>
 
     <parent>

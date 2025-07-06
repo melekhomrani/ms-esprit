@@ -8,3 +8,36 @@ datasources:
     access: proxy
     url: http://prometheus:9090
     isDefault: true
+
+  - name: Postgres keycloak
+    type: postgres
+    access: proxy
+    url: keycloakdb:5432
+    user: keycloak
+    secureJsonData:
+      password: password
+    database: keycloak
+    jsonData:
+      sslmode: disable
+
+  - name: MySQL manufacturer
+    type: mysql
+    access: proxy
+    url: manufacturerdb:3306
+    user: root
+    secureJsonData:
+      password: root
+    database: manufacturer_db
+
+  - name: MongoDB product
+    type: mongodb
+    access: proxy
+    user: root
+    secureJsonData:
+      password: root
+    database: product_db
+    jsonData:
+      authenticationType: basic
+      tls: false
+      srv: false
+      mongodb_url: mongodb://productdb:27017

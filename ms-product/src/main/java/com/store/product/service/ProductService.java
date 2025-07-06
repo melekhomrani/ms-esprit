@@ -3,7 +3,9 @@ package com.store.product.service;
 import com.store.dto.ManufacturerDto;
 import com.store.dto.ProductDto;
 import com.store.dto.ProductWithManufacturerDto;
+import com.store.kafka.ProductNotification;
 import com.store.product.feign.ManufacturerClient;
+import com.store.product.kafka.ProductProducer;
 import com.store.product.mapper.ProductMapper;
 import com.store.product.model.Product;
 import com.store.product.repository.ProductRepository;
@@ -20,11 +22,14 @@ public class ProductService {
     private final ProductRepository repository;
     private final ProductMapper mapper;
     private final ManufacturerClient manufacturerClient;
+    private final ProductProducer productProducer;
 
-    public ProductService(ProductRepository repository, ProductMapper mapper, ManufacturerClient manufacturerClient) {
+    public ProductService(ProductRepository repository, ProductMapper mapper, ManufacturerClient manufacturerClient,
+            ProductProducer productProducer) {
         this.repository = repository;
         this.mapper = mapper;
         this.manufacturerClient = manufacturerClient;
+        this.productProducer = productProducer;
     }
 
     public List<ProductDto> getAllProducts() {
@@ -76,6 +81,21 @@ public class ProductService {
 
         System.out.println("Manufacturer found: " + manufacturer.getName());
         Product saved = repository.save(mapper.toEntity(dto));
+
+        String email = manufacturer.getFounder()
+                .trim()
+                .toLowerCase()
+                .replaceAll("\\s+", ".") + "@store.com";
+
+        productProducer.sendProductNotification(
+                new ProductNotification(
+                        email,
+                        saved.getName(),
+                        manufacturer.getFounder(),
+                        saved.getPrice(),
+                        saved.getCategory(),
+                        saved.isInStock()));
+
         return mapper.toDto(saved);
     }
 

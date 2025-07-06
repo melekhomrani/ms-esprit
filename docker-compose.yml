@@ -48,8 +48,8 @@ services:
       - EUREKA_SERVER_ENABLE_SELF_PRESERVATION=false
       - EUREKA_SERVER_REPLICATION_ENABLED=true
       - EUREKA_SERVER_DEFAULT_ZONE=http://eureka-server:8761/eureka/
-    depends_on:
-      - config-server
+    # depends_on:
+    #   - config-server
     networks:
       store-network:
         aliases:
@@ -63,9 +63,9 @@ services:
       - "8989:8989"
     environment:
       - SPRING_PROFILES_ACTIVE=default
-    depends_on:
-      - config-server
-      - keycloak
+    # depends_on:
+    #   - config-server
+    #   - keycloak
     networks:
       store-network:
         aliases:
@@ -79,10 +79,10 @@ services:
       - "8084:8084"
     environment:
       - SPRING_PROFILES_ACTIVE=default
-    depends_on:
-      - config-server
-      - productdb
-      - keycloak
+    # depends_on:
+    #   - config-server
+    #   - productdb
+    #   - keycloak
     networks:
       store-network:
         aliases:
@@ -112,10 +112,12 @@ services:
       - "8083:8083"
     environment:
       - SPRING_PROFILES_ACTIVE=default
-    depends_on:
-      - config-server
-      - manufacturerdb
-      - keycloak
+      - SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS=kafka:29092
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+    # depends_on:
+    #   - config-server
+    #   - manufacturerdb
+    #   - keycloak
     networks:
       store-network:
         aliases:
@@ -136,6 +138,33 @@ services:
       store-network:
         aliases:
           - manufacturerdb
+
+  ms-notification:
+    container_name: ms-notification
+    build:
+      context: ./ms-notification
+    ports:
+      - "8040:8040"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - SPRING_KAFKA_CONSUMER_BOOTSTRAP_SERVERS=kafka:29092
+      - SPRING_MAIL_HOST=mail-dev
+      - SPRING_MAIL_PORT=1025
+      - SPRING_MAIL_USERNAME=
+      - SPRING_MAIL_PASSWORD=
+      - SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH=false
+      - SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=false
+      - SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_REQUIRED=false
+      - SPRING_MAIL_PROTOCOL=smtp
+
+    # depends_on:
+    #   - config-server
+    #   - productdb
+    #   - keycloak
+    networks:
+      store-network:
+        aliases:
+          - ms-notification
 
   keycloakdb:
     image: postgres
@@ -226,11 +255,10 @@ services:
     image: obsidiandynamics/kafdrop
     container_name: kafdrop
     environment:
-      KAFKA_BROKER_CONNECT: kafka:9092
-      JVM_OPTS: "-Xms32M -Xmx64M"
-      SERVER_PORT: 9000
+      KAFKA_BROKERCONNECT: "kafka:29092"
+      SERVER_PORT: 9009
     ports:
-      - "9000:9000"
+      - "9009:9009"
     depends_on:
       - kafka
     networks:
@@ -265,6 +293,8 @@ services:
       - GF_INSTALL_PLUGINS=
     volumes:
       - ./monitoring/grafana-datasources:/etc/grafana/provisioning/datasources
+      - ./monitoring/grafana-dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana-dashboards:/var/lib/grafana/dashboards
     restart: unless-stopped
     networks:
       store-network:
@@ -285,7 +315,7 @@ services:
           - nexus
 
   mail-dev:
-    container_name: ms-mail-dev
+    container_name: mail-dev
     image: maildev/maildev
     ports:
       - "1080:1080"

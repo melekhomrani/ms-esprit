@@ -11,7 +11,27 @@ scrape_configs:
     static_configs:
       - targets: ["172.29.227.2:8080"]
 
-  - job_name: "spring-boot-app"
+  - job_name: "ms-manufacturer"
     metrics_path: "/actuator/prometheus"
     static_configs:
-      - targets: ["172.29.227.2:8082"]
+      - targets: ["172.29.227.2:8083"]
+
+  - job_name: "ms-product"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["172.29.227.2:8084"]
+
+  - job_name: "gateway"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["172.29.227.2:8989"]
+
+  - job_name: "eureka-server"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["172.29.227.2:8761"]
+
+  - job_name: "config-server"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["172.29.227.2:8888"]
