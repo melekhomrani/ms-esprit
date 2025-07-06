@@ -47,9 +47,9 @@ pipeline {
     }
 
     post {
-        always {
-            junit '**/target/surefire-reports/*.xml'
-        }
+        // always {
+        //     junit '**/target/surefire-reports/*.xml'
+        // }
         failure {
             mail to: 'melek@store.com',
             subject: "Jenkins Pipeline Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
