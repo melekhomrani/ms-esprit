@@ -277,13 +277,12 @@ services:
     ports:
       - "8081:8081"
     volumes:
-      - nexus-data:/nexus-data
+      - nexus_data:/nexus-data
     restart: unless-stopped
     networks:
       store-network:
         aliases:
           - nexus
-
 
   mail-dev:
     container_name: ms-mail-dev
@@ -301,6 +300,7 @@ volumes:
   keycloakdb_data:
   manufacturerdb_data:
   productdb_data:
+  nexus_data:
 
 networks:
   store-network:

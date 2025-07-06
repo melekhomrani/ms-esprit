@@ -1,8 +1,19 @@
 #!/bin/bash
 set -e
 
-echo "🔄 Cloning public config-server repo..."
+CONFIG_SERVER_REPO="https://github.com/melekhomrani/config-server.git"
+CONFIG_SERVER_DIR="config-server"
 
-git clone https://github.com/melekhomrani/config-server.git config-server
+echo "🔄 Checking for existing config-server repository..."
 
-echo "✅ Config-server cloned inside $(pwd)/config-server"
+if [ -d "$CONFIG_SERVER_DIR/.git" ]; then
+    echo "✅ config-server repository already exists. Pulling latest changes..."
+    cd "$CONFIG_SERVER_DIR"
+    git pull
+    echo "✅ config-server updated successfully."
+else
+    echo "📥 Cloning config-server repository..."
+    git clone "$CONFIG_SERVER_REPO" "$CONFIG_SERVER_DIR"
+    echo "✅ config-server cloned successfully."
+fi
+

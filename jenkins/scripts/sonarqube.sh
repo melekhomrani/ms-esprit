@@ -1,9 +1,12 @@
 #!/bin/bash
-echo "🔍 Running SonarQube analysis..."
-mvn sonar:sonar \
-    -Dsonar.projectKey=ms-esprit \
-    -Dsonar.host.url=http://localhost:9000 \
-    -Dsonar.login=$SONAR_TOKEN
+set -e
+
+echo "🔍 Running SonarQube analysis using sonar-project.properties..."
+echo "Using SonarQube URL: $SONAR_HOST_URL"
+echo "Using SonarQube Scanner: $SONAR_SCANNER_HOME"
+
+${SONAR_SCANNER_HOME}/bin/sonar-scanner \
+    -Dproject.settings=sonar-project.properties
 
 if [ $? -ne 0 ]; then
     echo "❌ SonarQube analysis failed. Exiting..."
