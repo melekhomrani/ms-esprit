@@ -29,7 +29,7 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'sonar-token-id', variable: 'SONAR_TOKEN')]) {
                     withSonarQubeEnv('SonarQube') {
-                        sh 'jenkins/scripts/sonar.sh'
+                        sh 'jenkins/scripts/sonarqube.sh'
                     }
                 }
             }
