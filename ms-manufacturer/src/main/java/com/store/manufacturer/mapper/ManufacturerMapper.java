@@ -1,6 +1,6 @@
 package com.store.manufacturer.mapper;
 
-import com.store.manufacturer.dto.ManufacturerDto;
+import com.store.dto.ManufacturerDto;
 import com.store.manufacturer.model.Manufacturer;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;

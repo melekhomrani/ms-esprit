@@ -5,8 +5,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.List;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,7 +18,5 @@ public class Product {
     private String manufacturerId;
     private Double price;
     private String category;
-    private List<String> ingredients;
-    private List<String> labels;
     private boolean inStock;
 }

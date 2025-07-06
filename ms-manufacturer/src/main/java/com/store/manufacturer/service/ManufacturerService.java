@@ -1,6 +1,6 @@
 package com.store.manufacturer.service;
 
-import com.store.manufacturer.dto.ManufacturerDto;
+import com.store.dto.ManufacturerDto;
 import com.store.manufacturer.model.Manufacturer;
 import com.store.manufacturer.mapper.ManufacturerMapper;
 import com.store.manufacturer.repository.ManufacturerRepository;

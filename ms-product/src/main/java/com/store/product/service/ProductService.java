@@ -1,8 +1,8 @@
 package com.store.product.service;
 
-import com.store.product.dto.ManufacturerDto;
-import com.store.product.dto.ProductDto;
-import com.store.product.dto.ProductWithManufacturerDto;
+import com.store.dto.ManufacturerDto;
+import com.store.dto.ProductDto;
+import com.store.dto.ProductWithManufacturerDto;
 import com.store.product.feignClient.ManufacturerClient;
 import com.store.product.mapper.ProductMapper;
 import com.store.product.model.Product;

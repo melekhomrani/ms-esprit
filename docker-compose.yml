@@ -1,8 +1,7 @@
-version: "3.4"
-
-name: ms-product
+version: "3.8"
 
 services:
+
   config-server:
     container_name: config-server
     build:
@@ -10,7 +9,9 @@ services:
     ports:
       - "8888:8888"
     networks:
-      - store-network
+      store-network:
+        aliases:
+          - config-server
 
   eureka-server:
     container_name: eureka-server
@@ -21,7 +22,9 @@ services:
     depends_on:
       - config-server
     networks:
-      - store-network
+      store-network:
+        aliases:
+          - eureka-server
 
   gateway:
     container_name: gateway
@@ -29,16 +32,13 @@ services:
       context: ./gateway
     ports:
       - "8989:8989"
-    environment:
-      - KEYCLOAK_INTERNAL_URL=http://keycloak:8080
-      - KEYCLOAK_EXTERNAL_URL=http://localhost:18080
-      - GATEWAY_EXTERNAL_URL=http://localhost:8989
     depends_on:
       - config-server
-      # - eureka-server
       - keycloak
     networks:
-      - store-network
+      store-network:
+        aliases:
+          - gateway
 
   ms-product:
     container_name: ms-product
@@ -48,11 +48,12 @@ services:
       - "8081:8081"
     depends_on:
       - config-server
-      # - eureka-server
       - productdb
       - keycloak
     networks:
-      - store-network
+      store-network:
+        aliases:
+          - ms-product
 
   productdb:
     image: mongo:latest
@@ -66,90 +67,98 @@ services:
       - productdb_data:/data/db
     restart: on-failure
     networks:
-      - store-network
+      store-network:
+        aliases:
+          - productdb
 
   ms-manufacturer:
     container_name: ms-manufacturer
     build:
       context: ./ms-manufacturer
     ports:
-      - "8082:8082"
+      - "8083:8083"
     depends_on:
       - config-server
-      # - eureka-server
       - manufacturerdb
       - keycloak
     networks:
-      - store-network
+      store-network:
+        aliases:
+          - ms-manufacturer
 
   manufacturerdb:
     image: mysql:8.0
     container_name: manufacturerdb
-    volumes:
-      - manufacturerdb_data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: manufacturer_db
     ports:
       - "3306:3306"
+    volumes:
+      - manufacturerdb_data:/var/lib/mysql
     restart: on-failure
     networks:
-      - store-network
+      store-network:
+        aliases:
+          - manufacturerdb
 
   keycloakdb:
     image: postgres
     container_name: keycloakdb
-    restart: on-failure
-    ports:
-      - "5432:5432"
-    volumes:
-      - keycloakdb_data:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - keycloakdb_data:/var/lib/postgresql/data
+    restart: on-failure
     networks:
-      - store-network
+      store-network:
+        aliases:
+          - keycloakdb
 
   keycloak:
     image: quay.io/keycloak/keycloak
     container_name: keycloak
     environment:
-      KEYCLOAK_FRONTEND_URL: http://localhost:18080
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://keycloakdb:5432/keycloak
       KC_DB_USERNAME: keycloak
       KC_DB_PASSWORD: password
-
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
       KC_LOG_LEVEL: info
       KC_METRICS_ENABLED: true
       KC_HEALTH_ENABLED: true
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
     command: start-dev
     depends_on:
-      - config-server
       - keycloakdb
     ports:
-      - 18080:8080
+      - "18080:8080"
     restart: on-failure
     networks:
-      - store-network
+      store-network:
+        aliases:
+          - keycloak
 
   mail-dev:
     container_name: ms-mail-dev
     image: maildev/maildev
     ports:
-      - 1080:1080
-      - 1025:1025
+      - "1080:1080"
+      - "1025:1025"
+    restart: on-failure
+    networks:
+      store-network:
+        aliases:
+          - mail-dev
 
 volumes:
   keycloakdb_data:
-    driver: local
   manufacturerdb_data:
-    driver: local
   productdb_data:
-    driver: local
 
 networks:
   store-network:

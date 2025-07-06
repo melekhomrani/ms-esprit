@@ -1,6 +1,6 @@
 package com.store.manufacturer.controller;
 
-import com.store.manufacturer.dto.ManufacturerDto;
+import com.store.dto.ManufacturerDto;
 import com.store.manufacturer.service.ManufacturerService;
 import org.springframework.web.bind.annotation.*;
 

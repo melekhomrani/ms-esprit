@@ -1,7 +1,7 @@
 package com.store.product.controller;
 
-import com.store.product.dto.ProductDto;
-import com.store.product.dto.ProductWithManufacturerDto;
+import com.store.dto.ProductDto;
+import com.store.dto.ProductWithManufacturerDto;
 import com.store.product.service.ProductService;
 import org.springframework.web.bind.annotation.*;
 
