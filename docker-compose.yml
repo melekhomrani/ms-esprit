@@ -2,6 +2,27 @@ version: "3.8"
 
 services:
 
+  authentication-app:
+    container_name: authentication-app
+    build:
+      context: ./authentication
+    ports:
+      - "3000:3000"
+    environment:
+      KEYCLOAK_SERVER_URL: http://keycloak:8080
+      KEYCLOAK_REALM: authentication
+      KEYCLOAK_CLIENT_ID: store-app
+      KEYCLOAK_CLIENT_SECRET: k7YIkMsWSA8UhokbJxgnxrEurO35FpZe
+      KEYCLOAK_USERNAME: admin
+      KEYCLOAK_PASSWORD: admin
+      PORT: 3000
+    depends_on:
+      - keycloak
+    networks:
+      store-network:
+        aliases:
+          - authentication-app
+
   config-server:
     container_name: config-server
     build:
@@ -19,6 +40,13 @@ services:
       context: ./eureka-server
     ports:
       - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=false
+      - EUREKA_CLIENT_FETCH_REGISTRY=false
+      - EUREKA_SERVER_ENABLE_SELF_PRESERVATION=false
+      - EUREKA_SERVER_REPLICATION_ENABLED=true
+      - EUREKA_SERVER_DEFAULT_ZONE=http://eureka-server:8761/eureka/
     depends_on:
       - config-server
     networks:
@@ -32,6 +60,8 @@ services:
       context: ./gateway
     ports:
       - "8989:8989"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
     depends_on:
       - config-server
       - keycloak
@@ -46,6 +76,8 @@ services:
       context: ./ms-product
     ports:
       - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
     depends_on:
       - config-server
       - productdb
@@ -77,6 +109,8 @@ services:
       context: ./ms-manufacturer
     ports:
       - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
     depends_on:
       - config-server
       - manufacturerdb
