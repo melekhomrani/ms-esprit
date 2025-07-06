@@ -10,7 +10,7 @@ RUN npm install --production
 COPY server.js ./
 COPY .env ./
 
-EXPOSE 3000
+EXPOSE 5050
 
 # Start the app
 CMD ["node", "server.js"]

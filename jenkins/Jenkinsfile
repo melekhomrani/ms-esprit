@@ -7,6 +7,12 @@ pipeline {
     }
 
     stages {
+        stage('Clone Config Server') {
+            steps {
+                sh './scripts/clone-config-server.sh'
+            }
+        }
+
         stage('Build') {
             steps {
                 sh './scripts/build.sh'
