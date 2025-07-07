@@ -8,7 +8,7 @@ COPY package*.json ./
 RUN npm install --production
 
 COPY server.js ./
-COPY .env ./
+# COPY .env ./
 
 EXPOSE 5050
 
