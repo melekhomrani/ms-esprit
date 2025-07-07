@@ -1,0 +1,61 @@
+server:
+  port: 8989
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
+          routes:
+            - id: ms-product
+              uri: lb://MS-PRODUCT
+              predicates:
+                - Path=/api/products/**
+            - id: ms-manufacturer
+              uri: lb://MS-MANUFACTURER
+              predicates:
+                - Path=/api/manufacturers/**
+          globalcors:
+            corsConfigurations:
+              "[/**]":
+                allowedOrigins: "*"
+                allowedMethods: "*"
+                allowedHeaders: "*"
+                allowCredentials: false
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/authentication
+
+eureka:
+  instance:
+    hostname: gateway
+    prefer-ip-address: true
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.web: DEBUG
+    com.store.gateway: DEBUG
