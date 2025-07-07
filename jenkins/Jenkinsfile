@@ -10,21 +10,18 @@ pipeline {
     stages {
         stage('Build JARs') {
             steps {
-                echo 'Building all microservices JARs...'
-                sh 'mvn clean package -DskipTests'
+                sh 'jenkins/scripts/build_jars.sh'
             }
         }
 
         stage('Deploy JARs to Nexus') {
             steps {
-                echo 'Deploying microservices JARs to Nexus...'
-                sh 'mvn deploy -DskipTests'
+                sh 'jenkins/scripts/deploy_jars.sh'
             }
         }
 
         stage('Build and Run Authentication Service') {
             steps {
-                echo 'Building and running authentication NodeJS service with injected credentials...'
                 withCredentials([
                     string(credentialsId: 'KEYCLOAK_SERVER_URL', variable: 'KEYCLOAK_SERVER_URL'),
                     string(credentialsId: 'KEYCLOAK_REALM', variable: 'KEYCLOAK_REALM'),
@@ -39,18 +36,15 @@ pipeline {
                         export KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
                         export KEYCLOAK_USERNAME=$KEYCLOAK_USERNAME
                         export KEYCLOAK_PASSWORD=$KEYCLOAK_PASSWORD
-
-                        docker-compose build authentication-app
-                        docker-compose up -d authentication-app
+                        jenkins/scripts/build_run_authentication.sh
                     '''
                 }
             }
         }
 
-        stage('Start Dependencies') {
+        stage('Start Dependencies and Keycloak Realm Import') {
             steps {
-                echo 'Starting databases, Zookeeper, Kafka, and Keycloak...'
-                sh 'docker-compose up -d keycloakdb keycloak productdb manufacturerdb zookeeper kafka'
+                sh 'jenkins/scripts/start_dependencies.sh'
             }
         }
 
@@ -58,7 +52,10 @@ pipeline {
             steps {
                 script {
                     waitForContainerHealth('keycloakdb', 'pg_isready -U keycloak')
-                    waitForContainerHealth('productdb', "mongo --username root --password root --eval \"db.adminCommand('ping')\"")
+                    waitForContainerHealth(
+                        'productdb',
+                        "mongo --username root --password root --eval \"db.adminCommand('ping')\""
+                    )
                     waitForContainerHealth('manufacturerdb', 'mysqladmin ping -u root -proot')
                 }
             }
@@ -83,9 +80,7 @@ pipeline {
 
         stage('Build and Run Config Server') {
             steps {
-                echo 'Building and running config-server...'
-                sh 'docker-compose build config-server'
-                sh 'docker-compose up -d config-server'
+                sh 'jenkins/scripts/build_run_config_server.sh'
             }
         }
 
@@ -99,9 +94,7 @@ pipeline {
 
         stage('Build and Run Eureka Server') {
             steps {
-                echo 'Building and running eureka-server...'
-                sh 'docker-compose build eureka-server'
-                sh 'docker-compose up -d eureka-server'
+                sh 'jenkins/scripts/build_run_eureka_server.sh'
             }
         }
 
@@ -115,9 +108,7 @@ pipeline {
 
         stage('Build and Run Gateway') {
             steps {
-                echo 'Building and running gateway...'
-                sh 'docker-compose build gateway'
-                sh 'docker-compose up -d gateway'
+                sh 'jenkins/scripts/build_run_gateway.sh'
             }
         }
 
@@ -131,11 +122,7 @@ pipeline {
 
         stage('Build and Run Microservices') {
             steps {
-                echo 'Building and running ms-product, ms-manufacturer, ms-notification...'
-                sh '''
-                    docker-compose build ms-product ms-manufacturer ms-notification
-                    docker-compose up -d ms-product ms-manufacturer ms-notification
-                '''
+                sh 'jenkins/scripts/build_run_microservices.sh'
             }
         }
     }
@@ -154,55 +141,13 @@ pipeline {
             mail to: 'melek@store.com',
                 subject: "Jenkins Pipeline Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: """\
-                        The Jenkins pipeline for ${env.JOB_NAME} has failed.
+                    The Jenkins pipeline for ${env.JOB_NAME} has failed.
 
-                        Check details and console output:
-                        ${env.BUILD_URL}
+                    Check details and console output:
+                    ${env.BUILD_URL}
 
-                        Action is required.
+                    Action is required.
                     """
-        }
-    }
-}
-
-def waitForHttpService(url) {
-    timeout(time: 3, unit: 'MINUTES') {
-        waitUntil {
-            script {
-                def status = sh(
-                    script: "curl -s ${url} | grep 'UP' || true",
-                    returnStatus: true
-                )
-                return (status == 0)
-            }
-        }
-    }
-}
-
-def waitForContainerHealth(container, checkCommand) {
-    timeout(time: 3, unit: 'MINUTES') {
-        waitUntil {
-            script {
-                def status = sh(
-                    script: "docker exec ${container} ${checkCommand} || true",
-                    returnStatus: true
-                )
-                return (status == 0)
-            }
-        }
-    }
-}
-
-def waitForLogReady(container, logKeyword) {
-    timeout(time: 3, unit: 'MINUTES') {
-        waitUntil {
-            script {
-                def found = sh(
-                    script: "docker logs ${container} --tail 20 | grep '${logKeyword}' || true",
-                    returnStatus: true
-                )
-                return (found == 0)
-            }
         }
     }
 }
