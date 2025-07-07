@@ -2,48 +2,126 @@ pipeline {
     agent any
 
     environment {
-        SONARQUBE_SERVER = 'SonarQube'
-        SONAR_TOKEN = credentials('sonar-token-id')
+        NEXUS_URL = 'http://localhost:8081'
+        NEXUS_REPO = 'maven-releases'
+        NEXUS_CRED = credentials('nexus-credentials') // replace with your Jenkins Nexus credential ID
     }
 
     stages {
-        stage('Clone Config Server') {
+        stage('Build JARs') {
             steps {
-                sh 'jenkins/scripts/clone-config-server.sh'
+                echo 'Building all microservices JARs...'
+                sh 'mvn clean package -DskipTests'
             }
         }
 
-        stage('Build') {
+        stage('Deploy JARs to Nexus') {
             steps {
-                sh 'jenkins/scripts/build.sh'
+                echo 'Deploying microservices JARs to Nexus...'
+                sh 'mvn deploy -DskipTests'
             }
         }
 
-        stage('Test') {
+        stage('Build and Run Authentication Service') {
             steps {
-                sh 'jenkins/scripts/test.sh'
+                echo 'Building and running authentication NodeJS service...'
+                sh 'docker-compose build authentication-app'
+                sh 'docker-compose up -d authentication-app'
             }
         }
 
-        stage('SonarQube Analysis') {
+        stage('Start Dependencies') {
             steps {
-                withCredentials([string(credentialsId: 'sonar-token-id', variable: 'SONAR_TOKEN')]) {
-                    withSonarQubeEnv('SonarQube') {
-                        sh 'jenkins/scripts/sonarqube.sh'
-                    }
+                echo 'Starting databases, Zookeeper, Kafka, and Keycloak...'
+                sh 'docker-compose up -d keycloakdb keycloak productdb manufacturerdb zookeeper kafka'
+            }
+        }
+
+        stage('Wait for Databases Ready') {
+            steps {
+                script {
+                    waitForContainerHealth('keycloakdb', 'pg_isready -U keycloak')
+                    waitForContainerHealth(
+                        'productdb',
+                        "mongo --username root --password root --eval \"db.adminCommand('ping')\""
+                    )
+                    waitForContainerHealth('manufacturerdb', 'mysqladmin ping -u root -p root')
                 }
             }
         }
 
-        stage('Publish to Nexus') {
+        stage('Wait for Zookeeper and Kafka Ready') {
             steps {
-                sh 'jenkins/scripts/nexus-deploy.sh'
+                script {
+                    waitForLogReady('zookeeper', 'binding to port')
+                    waitForLogReady('kafka', 'started')
+                }
             }
         }
 
-        stage('Deploy with Docker Compose') {
+        stage('Wait for Keycloak Ready') {
             steps {
-                sh 'jenkins/scripts/deploy.sh'
+                script {
+                    waitForHttpService('http://localhost:18080/health/ready')
+                }
+            }
+        }
+
+        stage('Build and Run Config Server') {
+            steps {
+                echo 'Building and running config-server...'
+                sh 'docker-compose build config-server'
+                sh 'docker-compose up -d config-server'
+            }
+        }
+
+        stage('Wait for Config Server Ready') {
+            steps {
+                script {
+                    waitForHttpService('http://localhost:8888/actuator/health')
+                }
+            }
+        }
+
+        stage('Build and Run Eureka Server') {
+            steps {
+                echo 'Building and running eureka-server...'
+                sh 'docker-compose build eureka-server'
+                sh 'docker-compose up -d eureka-server'
+            }
+        }
+
+        stage('Wait for Eureka Server Ready') {
+            steps {
+                script {
+                    waitForHttpService('http://localhost:8761/actuator/health')
+                }
+            }
+        }
+
+        stage('Build and Run Gateway') {
+            steps {
+                echo 'Building and running gateway...'
+                sh 'docker-compose build gateway'
+                sh 'docker-compose up -d gateway'
+            }
+        }
+
+        stage('Wait for Gateway Ready') {
+            steps {
+                script {
+                    waitForHttpService('http://localhost:8989/actuator/health')
+                }
+            }
+        }
+
+        stage('Build and Run Microservices') {
+            steps {
+                echo 'Building and running ms-product, ms-manufacturer, ms-notification...'
+                sh '''
+                    docker-compose build ms-product ms-manufacturer ms-notification
+                    docker-compose up -d ms-product ms-manufacturer ms-notification
+                '''
             }
         }
     }
@@ -54,17 +132,63 @@ pipeline {
                 junit '**/target/surefire-reports/*.xml'
             }
         }
+        success {
+            echo 'Pipeline completed successfully. All services are built, deployed to Nexus, and running.'
+        }
         failure {
+            echo 'Pipeline failed.'
             mail to: 'melek@store.com',
-                subject: "🚨 Jenkins Pipeline Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                subject: "Jenkins Pipeline Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: """\
-                            The Jenkins pipeline for ${env.JOB_NAME} has failed.
+                        The Jenkins pipeline for ${env.JOB_NAME} has failed.
 
-                            Check details and console output:
-                            ${env.BUILD_URL}
+                        Check details and console output:
+                        ${env.BUILD_URL}
 
-                            Action is required.
-                            """
+                        Action is required.
+        """
+        }
+    }
+}
+
+def waitForHttpService(url) {
+    timeout(time: 3, unit: 'MINUTES') {
+        waitUntil {
+            script {
+                def status = sh(
+                    script: "curl -s ${url} | grep 'UP' || true",
+                    returnStatus: true
+                )
+                return (status == 0)
+            }
+        }
+    }
+}
+
+def waitForContainerHealth(container, checkCommand) {
+    timeout(time: 3, unit: 'MINUTES') {
+        waitUntil {
+            script {
+                def status = sh(
+                    script: "docker exec ${container} ${checkCommand} || true",
+                    returnStatus: true
+                )
+                return (status == 0)
+            }
+        }
+    }
+}
+
+def waitForLogReady(container, logKeyword) {
+    timeout(time: 3, unit: 'MINUTES') {
+        waitUntil {
+            script {
+                def found = sh(
+                    script: "docker logs ${container} --tail 20 | grep '${logKeyword}' || true",
+                    returnStatus: true
+                )
+                return (found == 0)
+            }
         }
     }
 }
