@@ -14,11 +14,11 @@ pipeline {
             }
         }
 
-        stage('Deploy JARs to Nexus') {
-            steps {
-                sh 'jenkins/scripts/deploy_jars.sh'
-            }
-        }
+        // stage('Deploy JARs to Nexus') {
+        //     steps {
+        //         sh 'jenkins/scripts/deploy_jars.sh'
+        //     }
+        // }
 
         stage('Build and Run Authentication Service') {
             steps {
