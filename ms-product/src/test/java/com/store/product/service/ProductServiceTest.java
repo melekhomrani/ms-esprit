@@ -4,6 +4,9 @@ import com.store.dto.ProductDto;
 import com.store.product.mapper.ProductMapper;
 import com.store.product.model.Product;
 import com.store.product.repository.ProductRepository;
+import com.store.dto.ManufacturerDto;
+import com.store.product.feign.ManufacturerClient;
+import com.store.product.kafka.ProductProducer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -26,6 +29,12 @@ class ProductServiceTest {
     @Mock
     private ProductMapper productMapper;
 
+    @Mock
+    private ManufacturerClient manufacturerClient;
+
+    @Mock
+    private ProductProducer productProducer;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -37,8 +46,11 @@ class ProductServiceTest {
         Product product = new Product();
 
         when(productMapper.toEntity(dto)).thenReturn(product);
+        when(productRepository.findByName(dto.getName())).thenReturn(null);
+        when(manufacturerClient.getManufacturer(anyLong())).thenReturn(new ManufacturerDto());
         when(productRepository.save(product)).thenReturn(product);
         when(productMapper.toDto(product)).thenReturn(dto);
+        doNothing().when(productProducer).sendProductNotification(any());
 
         ProductDto result = productService.createProduct(dto);
 
