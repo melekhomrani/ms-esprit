@@ -22,13 +22,6 @@ pipeline {
             }
         }
 
-        stage('Setting permissions for Docker socket') {
-            steps {
-                echo 'Setting permissions for Docker socket...'
-                sh 'sudo chmod 666 /var/run/docker.sock'
-            }
-        }
-
         stage('Build and Run Authentication Service') {
             steps {
                 echo 'Building and running authentication NodeJS service...'
