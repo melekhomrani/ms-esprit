@@ -1,5 +1,7 @@
 version: "3.8"
 
+name: ms-esprit
+
 services:
 
   authentication-app:
