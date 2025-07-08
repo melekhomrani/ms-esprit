@@ -128,11 +128,6 @@ pipeline {
     }
 
     post {
-        always {
-            script {
-                junit '**/target/surefire-reports/*.xml'
-            }
-        }
         success {
             echo 'Pipeline completed successfully. All services are built, deployed to Nexus, and running.'
         }
