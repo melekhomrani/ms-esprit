@@ -15,6 +15,10 @@
 FROM eclipse-temurin:17-jdk-alpine
 
 WORKDIR /app
+
+RUN npm cache clean --force
+RUN npm install -g npm
+
 COPY ./target/*.jar ./app.jar
 EXPOSE 8888
 CMD ["java", "-jar", "/app/app.jar"]
