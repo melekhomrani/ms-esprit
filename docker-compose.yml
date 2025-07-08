@@ -19,9 +19,6 @@ services:
       KEYCLOAK_PASSWORD: admin
       PORT: 5050
     restart: on-failure
-    command: start-dev --import-realm
-    volumes:
-      - ./keycloak/realms:/opt/keycloak/data/import
     depends_on:
       - keycloak
     networks:
@@ -201,7 +198,9 @@ services:
       KC_LOG_LEVEL: info
       KC_METRICS_ENABLED: true
       KC_HEALTH_ENABLED: true
-    command: start-dev
+    command: start-dev --import-realm
+    volumes:
+      - ./keycloak/realms:/opt/keycloak/data/import
     depends_on:
       - keycloakdb
     ports:
