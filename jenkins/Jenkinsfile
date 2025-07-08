@@ -146,3 +146,46 @@ pipeline {
         }
     }
 }
+
+
+def waitForHttpService(url) {
+    timeout(time: 3, unit: 'MINUTES') {
+        waitUntil {
+            script {
+                def status = sh(
+                    script: "curl -s ${url} | grep 'UP' || true",
+                    returnStatus: true
+                )
+                return (status == 0)
+            }
+        }
+    }
+}
+
+def waitForContainerHealth(container, checkCommand) {
+    timeout(time: 3, unit: 'MINUTES') {
+        waitUntil {
+            script {
+                def status = sh(
+                    script: "docker exec ${container} ${checkCommand} || true",
+                    returnStatus: true
+                )
+                return (status == 0)
+            }
+        }
+    }
+}
+
+def waitForLogReady(container, logKeyword) {
+    timeout(time: 3, unit: 'MINUTES') {
+        waitUntil {
+            script {
+                def found = sh(
+                    script: "docker logs ${container} | grep '${logKeyword}' || true",
+                    returnStatus: true
+                )
+                return (found == 0)
+            }
+        }
+    }
+}
