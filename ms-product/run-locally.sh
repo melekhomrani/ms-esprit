@@ -1,3 +1,3 @@
 #!/bin/bash
 
-SPRING_PROFILES_ACTIVE=dev ./mvnw spring-boot:run
+SPRING_PROFILES_ACTIVE=dev mvn spring-boot:run
