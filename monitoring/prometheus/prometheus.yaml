@@ -35,3 +35,8 @@ scrape_configs:
     metrics_path: "/actuator/prometheus"
     static_configs:
       - targets: ["172.29.227.2:8888"]
+
+  - job_name: "ms-notification"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["172.29.227.2:8040"]
