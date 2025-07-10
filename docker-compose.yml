@@ -236,9 +236,9 @@ services:
     container_name: kafka
     hostname: kafka
     ports:
-      - "9092:9092"        # external host testing
-      - "29092:19092"      # alternative host testing
-      - "9999:9999"        # JMX for monitoring if needed
+      - "9092:9092"
+      - "29092:19092"
+      - "9999:9999"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
