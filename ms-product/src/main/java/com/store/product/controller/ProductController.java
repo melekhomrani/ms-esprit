@@ -1,7 +1,10 @@
 package com.store.product.controller;
 
+
+import com.store.dto.ManufacturerDto;
 import com.store.dto.ProductDto;
 import com.store.dto.ProductWithManufacturerDto;
+import com.store.product.feign.ManufacturerClient;
 import com.store.product.service.ProductService;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,9 +15,11 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService service;
+    private final ManufacturerClient manufacturerClient;
 
-    public ProductController(ProductService service) {
+    public ProductController(ProductService service, ManufacturerClient manufacturerClient) {
         this.service = service;
+        this.manufacturerClient = manufacturerClient;
     }
 
     @GetMapping
@@ -46,4 +51,10 @@ public class ProductController {
     public void deleteProduct(@PathVariable String id) {
         service.deleteProduct(id);
     }
+
+    @GetMapping("/test-fallback")
+    public ManufacturerDto testFallback() {
+        return manufacturerClient.getManufacturer(123L);
+    }
+  
 }
