@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: default
+  labels:
+    app: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+      - name: gateway
+        image: localhost:5000/gateway:latest
+        ports:
+        - containerPort: 8989
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: SPRING_PROFILES_ACTIVE
+        - name: CONFIG_SERVER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: CONFIG_SERVER_URL
+        - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+        - name: EUREKA_CLIENT_REGISTER_WITH_EUREKA
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: EUREKA_CLIENT_REGISTER_WITH_EUREKA
+        - name: EUREKA_CLIENT_FETCH_REGISTRY
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: EUREKA_CLIENT_FETCH_REGISTRY
+        - name: KEYCLOAK_SERVER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: KEYCLOAK_SERVER_URL
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8989
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8989
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: default
+  labels:
+    app: gateway
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8989
+    targetPort: 8989
+    protocol: TCP
+  selector:
+    app: gateway

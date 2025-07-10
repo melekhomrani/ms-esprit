@@ -16,7 +16,7 @@ spring:
         jwt:
           issuer-uri: http://keycloak:8080/realms/authentication
   kafka:
-    bootstrap-servers: kafka:29092
+    bootstrap-servers: kafka:19092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer

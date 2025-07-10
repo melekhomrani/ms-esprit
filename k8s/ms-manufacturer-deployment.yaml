@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-manufacturer
+  namespace: default
+  labels:
+    app: ms-manufacturer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-manufacturer
+  template:
+    metadata:
+      labels:
+        app: ms-manufacturer
+    spec:
+      containers:
+      - name: ms-manufacturer
+        image: localhost:5000/ms-manufacturer:latest
+        ports:
+        - containerPort: 8083
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: SPRING_PROFILES_ACTIVE
+        - name: CONFIG_SERVER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: CONFIG_SERVER_URL
+        - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+        - name: EUREKA_CLIENT_REGISTER_WITH_EUREKA
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: EUREKA_CLIENT_REGISTER_WITH_EUREKA
+        - name: EUREKA_CLIENT_FETCH_REGISTRY
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: EUREKA_CLIENT_FETCH_REGISTRY
+        - name: SPRING_DATASOURCE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: SPRING_DATASOURCE_URL
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: SPRING_DATASOURCE_USERNAME
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: microservices-secrets
+              key: SPRING_DATASOURCE_PASSWORD
+        - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: SPRING_KAFKA_BOOTSTRAP_SERVERS
+        - name: SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS
+        - name: KEYCLOAK_SERVER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: KEYCLOAK_SERVER_URL
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8083
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8083
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms-manufacturer
+  namespace: default
+  labels:
+    app: ms-manufacturer
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8083
+    targetPort: 8083
+    protocol: TCP
+  selector:
+    app: ms-manufacturer

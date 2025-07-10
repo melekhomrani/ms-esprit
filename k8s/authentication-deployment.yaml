@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authentication
+  namespace: default
+  labels:
+    app: authentication
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: authentication
+  template:
+    metadata:
+      labels:
+        app: authentication
+    spec:
+      containers:
+      - name: authentication
+        image: localhost:5000/authentication:latest
+        ports:
+        - containerPort: 5050
+        env:
+        - name: KEYCLOAK_SERVER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: KEYCLOAK_SERVER_URL
+        - name: KEYCLOAK_REALM
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: KEYCLOAK_REALM
+        - name: KEYCLOAK_CLIENT_ID
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: KEYCLOAK_CLIENT_ID
+        - name: KEYCLOAK_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: microservices-secrets
+              key: KEYCLOAK_CLIENT_SECRET
+        - name: KEYCLOAK_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: KEYCLOAK_USERNAME
+        - name: KEYCLOAK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: microservices-secrets
+              key: KEYCLOAK_PASSWORD
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: PORT
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5050
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5050
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: authentication
+  namespace: default
+  labels:
+    app: authentication
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5050
+    targetPort: 5050
+    protocol: TCP
+  selector:
+    app: authentication
