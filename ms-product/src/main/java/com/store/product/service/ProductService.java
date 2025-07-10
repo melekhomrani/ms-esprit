@@ -10,7 +10,7 @@ import com.store.product.mapper.ProductMapper;
 import com.store.product.model.Product;
 import com.store.product.repository.ProductRepository;
 
-import feign.FeignException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 
 import org.springframework.stereotype.Service;
 
@@ -32,6 +32,17 @@ public class ProductService {
         this.productProducer = productProducer;
     }
 
+    @CircuitBreaker(name = "manufacturerClient", fallbackMethod = "manufacturerFallback")
+    public ManufacturerDto getManufacturerWithCircuitBreaker(Long id) {
+        return manufacturerClient.getManufacturer(id);
+    }
+
+    // Fallback method called when circuit breaker is OPEN or call fails
+    public ManufacturerDto manufacturerFallback(Long id, Throwable t) {
+        System.err.println(" Circuit breaker fallback triggered for manufacturer ID: " + id + ", reason: " + t.getMessage());
+        return new ManufacturerDto(id, "Unavailable Manufacturer", "N/A", "Unknown");
+    }
+
     public List<ProductDto> getAllProducts() {
         return mapper.toDtos(repository.findAll());
     }
@@ -40,13 +51,7 @@ public class ProductService {
         List<Product> products = repository.findAll();
 
         return products.stream().map(product -> {
-            ManufacturerDto manufacturer = null;
-            try {
-                manufacturer = manufacturerClient.getManufacturer(Long.valueOf(product.getManufacturerId()));
-            } catch (FeignException e) {
-                // Log and continue with null manufacturer
-                System.err.println("⚠️ Manufacturer not found for ID " + product.getManufacturerId());
-            }
+            ManufacturerDto manufacturer = getManufacturerWithCircuitBreaker(Long.valueOf(product.getManufacturerId()));
 
             ProductWithManufacturerDto dto = new ProductWithManufacturerDto();
             dto.setId(product.getId());
@@ -66,20 +71,17 @@ public class ProductService {
 
     public ProductDto createProduct(ProductDto dto) {
 
-        System.out.println("Fetching manufacturer by ID: " + dto.getManufacturerId());
-        ManufacturerDto manufacturer = manufacturerClient.getManufacturer(Long.valueOf(dto.getManufacturerId()));
-        System.out.println("Fetched manufacturer: " + manufacturer);
+        ManufacturerDto manufacturer = getManufacturerWithCircuitBreaker(Long.valueOf(dto.getManufacturerId()));
 
         if (manufacturer == null) {
-            throw new IllegalArgumentException("Manufacturer with ID " + dto.getManufacturerId()
-                    + " not found. \n Please ensure the manufacturer exists before creating a product.");
+            throw new IllegalArgumentException("Manufacturer with ID " + dto.getManufacturerId() +
+                    " not found. Please ensure the manufacturer exists before creating a product.");
         }
 
         if (repository.findByName(dto.getName()) != null) {
             throw new IllegalArgumentException("Product with name '" + dto.getName() + "' already exists.");
         }
 
-        System.out.println("Manufacturer found: " + manufacturer.getName());
         Product saved = repository.save(mapper.toEntity(dto));
 
         String email = manufacturer.getFounder()
@@ -94,7 +96,9 @@ public class ProductService {
                         manufacturer.getFounder(),
                         saved.getPrice(),
                         saved.getCategory(),
-                        saved.isInStock()));
+                        saved.isInStock()
+                )
+        );
 
         return mapper.toDto(saved);
     }
@@ -106,12 +110,12 @@ public class ProductService {
             throw new IllegalArgumentException("Product with name '" + dto.getName() + "' already exists.");
         }
 
-        mapper.updateEntityFromDto(dto, existing); // ✅
+        mapper.updateEntityFromDto(dto, existing);
         return mapper.toDto(repository.save(existing));
     }
 
     public void deleteProduct(String id) {
         repository.deleteById(id);
     }
-
+    
 }
