@@ -1,5 +1,6 @@
 package com.store.product.controller;
 
+
 import com.store.dto.ManufacturerDto;
 import com.store.dto.ProductDto;
 import com.store.dto.ProductWithManufacturerDto;
@@ -55,5 +56,5 @@ public class ProductController {
     public ManufacturerDto testFallback() {
         return manufacturerClient.getManufacturer(123L);
     }
-
+  
 }
