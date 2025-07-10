@@ -20,31 +20,9 @@ pipeline {
         //     }
         // }
 
-        stage('Build and Run Authentication Service') {
+        stage('Start Databases') {
             steps {
-                withCredentials([
-                    string(credentialsId: 'KEYCLOAK_SERVER_URL', variable: 'KEYCLOAK_SERVER_URL'),
-                    string(credentialsId: 'KEYCLOAK_REALM', variable: 'KEYCLOAK_REALM'),
-                    string(credentialsId: 'KEYCLOAK_CLIENT_ID', variable: 'KEYCLOAK_CLIENT_ID'),
-                    string(credentialsId: 'KEYCLOAK_CLIENT_SECRET', variable: 'KEYCLOAK_CLIENT_SECRET'),
-                    usernamePassword(credentialsId: 'KEYCLOAK_CREDENTIALS', usernameVariable: 'KEYCLOAK_USERNAME', passwordVariable: 'KEYCLOAK_PASSWORD')
-                ]) {
-                    sh '''
-                        export KEYCLOAK_SERVER_URL=$KEYCLOAK_SERVER_URL
-                        export KEYCLOAK_REALM=$KEYCLOAK_REALM
-                        export KEYCLOAK_CLIENT_ID=$KEYCLOAK_CLIENT_ID
-                        export KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
-                        export KEYCLOAK_USERNAME=$KEYCLOAK_USERNAME
-                        export KEYCLOAK_PASSWORD=$KEYCLOAK_PASSWORD
-                        jenkins/scripts/build_run_authentication.sh
-                    '''
-                }
-            }
-        }
-
-        stage('Start Dependencies and Keycloak Realm Import') {
-            steps {
-                sh 'jenkins/scripts/start_dependencies.sh'
+                sh 'jenkins/scripts/start_databases.sh'
             }
         }
 
@@ -52,28 +30,71 @@ pipeline {
             steps {
                 script {
                     waitForContainerHealth('keycloakdb', 'pg_isready -U keycloak')
-                    waitForContainerHealth(
-                        'productdb',
-                        "mongo --username root --password root --eval \"db.adminCommand('ping')\""
-                    )
+                    waitForContainerHealth('productdb', "mongo --username root --password root --eval \"db.adminCommand('ping')\"")
                     waitForContainerHealth('manufacturerdb', 'mysqladmin ping -u root -proot')
                 }
             }
         }
 
-        stage('Wait for Zookeeper and Kafka Ready') {
+        
+        stage('Start keycloak and make it ready') {
             steps {
                 script {
+                    sh 'docker-compose up -d keycloak'
+                    waitForLogReady('keycloak', 'started in')
+                }
+            }
+        }
+
+        stage('Start Zookeeper and make it ready') {
+            steps {
+                script {
+                    sh 'docker-compose up -d zookeeper'
                     waitForLogReady('zookeeper', 'binding to port')
+                }
+            }
+        }
+
+        stage('Start kafka and make it ready') {
+            steps {
+                script {
+                    sh 'docker-compose up -d kafka'
                     waitForLogReady('kafka', 'started')
                 }
             }
         }
 
-        stage('Wait for Keycloak Ready') {
+        stage('Start kfdrop and make it ready') {
             steps {
                 script {
-                    waitForHttpService('http://localhost:18080/health/ready')
+                    sh 'docker-compose up -d kfdrop'
+                }
+            }
+        }
+
+        // graphana and prometheus 
+        stage('Start Prometheus and make it ready') {
+            steps {
+                script {
+                    sh 'docker-compose up -d prometheus'
+                    waitForLogReady('prometheus', 'Server is ready to receive web requests')
+                }
+            }
+        }
+
+        stage('Start Grafana and make it ready') {
+            steps {
+                script {
+                    sh 'docker-compose up -d grafana'
+                    waitForHttpService('http://localhost:3000/api/health')
+                }
+            }
+        }
+
+        stage('Start Authentication Service') {
+            steps {
+                script {
+                    sh 'jenkins/scripts/build_run_authentication_service.sh'
                 }
             }
         }
@@ -81,44 +102,26 @@ pipeline {
         stage('Build and Run Config Server') {
             steps {
                 sh 'jenkins/scripts/build_run_config_server.sh'
-            }
-        }
-
-        stage('Wait for Config Server Ready') {
-            steps {
-                script {
-                    waitForHttpService('http://localhost:8888/actuator/health')
-                }
+                waitForHttpService('http://localhost:8888/actuator/health')
             }
         }
 
         stage('Build and Run Eureka Server') {
             steps {
                 sh 'jenkins/scripts/build_run_eureka_server.sh'
+                waitForHttpService('http://localhost:8761/actuator/health')
             }
         }
 
-        stage('Wait for Eureka Server Ready') {
+        stage('Start Gateway and make it ready') {
             steps {
                 script {
-                    waitForHttpService('http://localhost:8761/actuator/health')
-                }
-            }
-        }
-
-        stage('Build and Run Gateway') {
-            steps {
-                sh 'jenkins/scripts/build_run_gateway.sh'
-            }
-        }
-
-        stage('Wait for Gateway Ready') {
-            steps {
-                script {
+                    sh 'jenkins/scripts/build_run_gateway.sh'
                     waitForHttpService('http://localhost:8989/actuator/health')
                 }
             }
         }
+
 
         stage('Build and Run Microservices') {
             steps {
@@ -147,20 +150,26 @@ pipeline {
     }
 }
 
-
 def waitForHttpService(url) {
     timeout(time: 3, unit: 'MINUTES') {
         waitUntil {
             script {
                 def status = sh(
-                    script: "curl -s ${url} | grep 'UP' || true",
+                    script: "curl -s ${url} | grep '\"status\":\"UP\"' || true",
                     returnStatus: true
                 )
-                return (status == 0)
+                if (status == 0) {
+                    echo "Service at ${url} is UP"
+                    return true
+                } else {
+                    echo "Waiting for service at ${url} to be UP..."
+                    return false
+                }
             }
         }
     }
 }
+
 
 def waitForContainerHealth(container, checkCommand) {
     timeout(time: 3, unit: 'MINUTES') {
