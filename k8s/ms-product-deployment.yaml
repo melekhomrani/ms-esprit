@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: ms-product
-        image: localhost:5000/ms-product:latest
+        image: melekhomrani/ms-esprit-ms-product:latest
         ports:
         - containerPort: 8084
         env:
@@ -46,11 +46,51 @@ spec:
             configMapKeyRef:
               name: microservices-config
               key: EUREKA_CLIENT_FETCH_REGISTRY
-        - name: SPRING_DATA_MONGODB_URI
+        - name: SPRING_DATA_MONGODB_HOST
           valueFrom:
             configMapKeyRef:
               name: microservices-config
-              key: SPRING_DATA_MONGODB_URI
+              key: SPRING_DATA_MONGODB_HOST
+        - name: SPRING_DATA_MONGODB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: SPRING_DATA_MONGODB_PORT
+        - name: SPRING_DATA_MONGODB_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: SPRING_DATA_MONGODB_DATABASE        
+        - name: SPRING_DATA_MONGODB_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: SPRING_DATA_MONGODB_USERNAME
+        - name: SPRING_DATA_MONGODB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: microservices-secrets
+              key: SPRING_DATA_MONGODB_PASSWORD
+        - name: SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: microservices-secrets
+              key: SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE
+        - name: SPRING_DATASOURCE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: SPRING_DATASOURCE_URL
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: SPRING_DATASOURCE_USERNAME
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: microservices-secrets
+              key: SPRING_DATASOURCE_PASSWORD
         - name: MONGO_INITDB_ROOT_USERNAME
           valueFrom:
             secretKeyRef:
@@ -66,18 +106,6 @@ spec:
             configMapKeyRef:
               name: microservices-config
               key: KEYCLOAK_SERVER_URL
-        readinessProbe:
-          httpGet:
-            path: /actuator/health
-            port: 8084
-          initialDelaySeconds: 10
-          periodSeconds: 5
-        livenessProbe:
-          httpGet:
-            path: /actuator/health
-            port: 8084
-          initialDelaySeconds: 10
-          periodSeconds: 5
         resources:
           requests:
             memory: "512Mi"

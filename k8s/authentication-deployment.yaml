@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: authentication
-        image: localhost:5000/authentication:latest
+        image: melekhomrani/ms-esprit-authentication-app:latest
         ports:
         - containerPort: 5050
         env:
@@ -56,18 +56,6 @@ spec:
             configMapKeyRef:
               name: microservices-config
               key: PORT
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 5050
-          initialDelaySeconds: 10
-          periodSeconds: 5
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 5050
-          initialDelaySeconds: 10
-          periodSeconds: 5
         resources:
           requests:
             memory: "256Mi"

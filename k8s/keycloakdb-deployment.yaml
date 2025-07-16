@@ -46,22 +46,6 @@ spec:
           limits:
             memory: "1Gi"
             cpu: "500m"
-        readinessProbe:
-          exec:
-            command:
-            - pg_isready
-            - -U
-            - keycloak
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        livenessProbe:
-          exec:
-            command:
-            - pg_isready
-            - -U
-            - keycloak
-          initialDelaySeconds: 30
-          periodSeconds: 30
       volumes:
       - name: keycloakdb-storage
         persistentVolumeClaim:
