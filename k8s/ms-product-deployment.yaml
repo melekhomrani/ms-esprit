@@ -101,6 +101,16 @@ spec:
             secretKeyRef:
               name: microservices-secrets
               key: MONGO_INITDB_ROOT_PASSWORD
+        - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: SPRING_KAFKA_BOOTSTRAP_SERVERS
+        - name: SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS
         - name: KEYCLOAK_SERVER_URL
           valueFrom:
             configMapKeyRef:
