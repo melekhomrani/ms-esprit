@@ -2,6 +2,9 @@
 
 set -e
 
+export MINIKUBE_HOME=/home/melek
+export KUBECONFIG=/mnt/c/Users/lek/.kube/config
+
 echo "Pushing Docker images to Minikube..."
 
 minikube image load ms-esprit/authentication:latest
