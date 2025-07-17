@@ -33,7 +33,6 @@ pipeline {
         stage('Push Images to Minikube') {
             steps {
                 echo 'Pushing Docker images to Minikube daemon...'
-                sh 'eval $(minikube docker-env)'
                 sh 'chmod +x ./jenkins/scripts/push-minikube.sh'
                 sh './jenkins/scripts/push-minikube.sh'
             }
