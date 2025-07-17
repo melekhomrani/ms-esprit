@@ -8,6 +8,7 @@ A **clean, educational microservices backend** using **Spring Boot 3.5.3**, **Sp
 ✅ OAuth2 JWT authentication (Keycloak)  
 ✅ Multi-module Maven structure for professional scalability
 
+
 ---
 
 ## 📦 Structure
