@@ -8,10 +8,16 @@ pipeline {
     }
 
         stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
         stage('Build JARs') {
             steps {
                 echo 'Building JARs...'
-                sh './jenkins/scripts/build-jars.sh'
+                sh './jenkins/scripts/build_jars.sh'
             }
         }
 
