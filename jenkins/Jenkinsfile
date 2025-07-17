@@ -12,7 +12,7 @@ pipeline {
             steps {
                 echo 'Building JARs...'
                 sh 'chmod +x jenkins/scripts/build-jars.sh'
-                sh './jenkins/scripts/build-jars.sh'
+                sh 'jenkins/scripts/build-jars.sh'
             }
         }
 
@@ -20,7 +20,7 @@ pipeline {
             steps {
                 echo 'Building Docker images...'
                 sh 'chmod +x jenkins/scripts/build-docker.sh'
-                sh './jenkins/scripts/build-docker.sh'
+                sh 'jenkins/scripts/build-docker.sh'
             }
         }
 
@@ -28,7 +28,7 @@ pipeline {
             steps {
                 echo 'Pushing Docker images to Minikube daemon...'
                 sh 'chmod +x jenkins/scripts/push-minikube.sh'
-                sh './jenkins/scripts/push-minikube.sh'
+                sh 'jenkins/scripts/push-minikube.sh'
             }
         }
 
@@ -36,7 +36,7 @@ pipeline {
             steps {
                 echo 'Deploying to Kubernetes...'
                 sh 'chmod +x jenkins/scripts/deploy-k8s.sh'
-                sh './jenkins/scripts/deploy-k8s.sh'
+                sh 'jenkins/scripts/deploy-k8s.sh'
             }
         }
     }
