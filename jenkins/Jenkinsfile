@@ -7,125 +7,36 @@ pipeline {
         NEXUS_CRED = credentials('nexus-credentials')
     }
 
-    stages {
+        stages {
         stage('Build JARs') {
             steps {
-                sh 'jenkins/scripts/build_jars.sh'
+                echo 'Building JARs...'
+                sh 'chmod +x jenkins/scripts/build-jars.sh'
+                sh './jenkins/scripts/build-jars.sh'
             }
         }
 
-        // stage('Deploy JARs to Nexus') {
-        //     steps {
-        //         sh 'jenkins/scripts/deploy_jars.sh'
-        //     }
-        // }
-
-        stage('Start Databases') {
+        stage('Build Docker Images') {
             steps {
-                sh 'jenkins/scripts/start_databases.sh'
+                echo 'Building Docker images...'
+                sh 'chmod +x jenkins/scripts/build-docker.sh'
+                sh './jenkins/scripts/build-docker.sh'
             }
         }
 
-        stage('Wait for Databases Ready') {
+        stage('Push Images to Minikube') {
             steps {
-                script {
-                    waitForContainerHealth('keycloakdb', 'pg_isready -U keycloak')
-                    waitForContainerHealth('productdb', "mongo --username root --password root --eval \"db.adminCommand('ping')\"")
-                    waitForContainerHealth('manufacturerdb', 'mysqladmin ping -u root -proot')
-                }
+                echo 'Pushing Docker images to Minikube daemon...'
+                sh 'chmod +x jenkins/scripts/push-minikube.sh'
+                sh './jenkins/scripts/push-minikube.sh'
             }
         }
 
-        
-        stage('Start keycloak and make it ready') {
+        stage('Deploy to Kubernetes') {
             steps {
-                script {
-                    sh 'docker-compose up -d keycloak'
-                    waitForLogReady('keycloak', 'started in')
-                }
-            }
-        }
-
-        stage('Start Zookeeper and make it ready') {
-            steps {
-                script {
-                    sh 'docker-compose up -d zookeeper'
-                    waitForLogReady('zookeeper', 'binding to port')
-                }
-            }
-        }
-
-        stage('Start kafka and make it ready') {
-            steps {
-                script {
-                    sh 'docker-compose up -d kafka'
-                    waitForLogReady('kafka', 'started')
-                }
-            }
-        }
-
-        stage('Start kfdrop and make it ready') {
-            steps {
-                script {
-                    sh 'docker-compose up -d kfdrop'
-                }
-            }
-        }
-
-        // graphana and prometheus 
-        stage('Start Prometheus and make it ready') {
-            steps {
-                script {
-                    sh 'docker-compose up -d prometheus'
-                    waitForLogReady('prometheus', 'Server is ready to receive web requests')
-                }
-            }
-        }
-
-        stage('Start Grafana and make it ready') {
-            steps {
-                script {
-                    sh 'docker-compose up -d grafana'
-                    waitForHttpService('http://localhost:3000/api/health')
-                }
-            }
-        }
-
-        stage('Start Authentication Service') {
-            steps {
-                script {
-                    sh 'jenkins/scripts/build_run_authentication_service.sh'
-                }
-            }
-        }
-
-        stage('Build and Run Config Server') {
-            steps {
-                sh 'jenkins/scripts/build_run_config_server.sh'
-                waitForHttpService('http://localhost:8888/actuator/health')
-            }
-        }
-
-        stage('Build and Run Eureka Server') {
-            steps {
-                sh 'jenkins/scripts/build_run_eureka_server.sh'
-                waitForHttpService('http://localhost:8761/actuator/health')
-            }
-        }
-
-        stage('Start Gateway and make it ready') {
-            steps {
-                script {
-                    sh 'jenkins/scripts/build_run_gateway.sh'
-                    waitForHttpService('http://localhost:8989/actuator/health')
-                }
-            }
-        }
-
-
-        stage('Build and Run Microservices') {
-            steps {
-                sh 'jenkins/scripts/build_run_microservices.sh'
+                echo 'Deploying to Kubernetes...'
+                sh 'chmod +x jenkins/scripts/deploy-k8s.sh'
+                sh './jenkins/scripts/deploy-k8s.sh'
             }
         }
     }
@@ -146,55 +57,6 @@ pipeline {
 
                     Action is required.
                     """
-        }
-    }
-}
-
-def waitForHttpService(url) {
-    timeout(time: 3, unit: 'MINUTES') {
-        waitUntil {
-            script {
-                def status = sh(
-                    script: "curl -s ${url} | grep '\"status\":\"UP\"' || true",
-                    returnStatus: true
-                )
-                if (status == 0) {
-                    echo "Service at ${url} is UP"
-                    return true
-                } else {
-                    echo "Waiting for service at ${url} to be UP..."
-                    return false
-                }
-            }
-        }
-    }
-}
-
-
-def waitForContainerHealth(container, checkCommand) {
-    timeout(time: 3, unit: 'MINUTES') {
-        waitUntil {
-            script {
-                def status = sh(
-                    script: "docker exec ${container} ${checkCommand} || true",
-                    returnStatus: true
-                )
-                return (status == 0)
-            }
-        }
-    }
-}
-
-def waitForLogReady(container, logKeyword) {
-    timeout(time: 3, unit: 'MINUTES') {
-        waitUntil {
-            script {
-                def found = sh(
-                    script: "docker logs ${container} | grep '${logKeyword}' || true",
-                    returnStatus: true
-                )
-                return (found == 0)
-            }
         }
     }
 }
