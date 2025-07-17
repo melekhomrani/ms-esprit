@@ -11,28 +11,28 @@ pipeline {
         stage('Build JARs') {
             steps {
                 echo 'Building JARs...'
-                sh 'jenkins/scripts/build-jars.sh'
+                sh './jenkins/scripts/build-jars.sh'
             }
         }
 
         stage('Build Docker Images') {
             steps {
                 echo 'Building Docker images...'
-                sh 'jenkins/scripts/build-docker.sh'
+                sh './jenkins/scripts/build-docker.sh'
             }
         }
 
         stage('Push Images to Minikube') {
             steps {
                 echo 'Pushing Docker images to Minikube daemon...'
-                sh 'jenkins/scripts/push-minikube.sh'
+                sh './jenkins/scripts/push-minikube.sh'
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
                 echo 'Deploying to Kubernetes...'
-                sh 'jenkins/scripts/deploy-k8s.sh'
+                sh './jenkins/scripts/deploy-k8s.sh'
             }
         }
     }
