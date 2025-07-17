@@ -2,7 +2,6 @@
 
 set -e
 set -x
-eval $(minikube docker-env)
 
 # services=(authentication config-server eureka-server gateway ms-manufacturer ms-product ms-notification)
 
