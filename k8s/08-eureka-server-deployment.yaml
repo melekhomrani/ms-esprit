@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: eureka-server
-        image: host.docker.internal:5000/ms-esprit-eureka-server:latest
+        image: host.docker.internal:5000/eureka-server:latest
         ports:
         - containerPort: 8761
         env:

@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: config-server
-        image: host.docker.internal:5000/ms-esprit-config-server:latest
+        image: host.docker.internal:5000/config-server:latest
         ports:
         - containerPort: 8888
         env:

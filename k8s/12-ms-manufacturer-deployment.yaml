@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: ms-manufacturer
-        image: host.docker.internal:5000/ms-esprit-ms-manufacturer:latest
+        image: host.docker.internal:5000/ms-manufacturer:latest
         ports:
         - containerPort: 8083
         env:
