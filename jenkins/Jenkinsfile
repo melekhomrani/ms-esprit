@@ -25,16 +25,16 @@ pipeline {
         stage('Build JARs') {
             steps {
                 echo 'Building JARs...'
-                sh 'chmod +x ./jenkins/scripts/build_jars.sh'
-                sh './jenkins/scripts/build_jars.sh'
+                sh 'chmod +x ./jenkins/scripts/01-build-jars.sh'
+                sh './jenkins/scripts/01-build-jars.sh'
             }
         }
 
         stage('Deploy to Nexus') {
             steps {
                 echo 'Deploying JARs to Nexus...'
-                sh 'chmod +x ./jenkins/scripts/nexus-deploy.sh'
-                sh './jenkins/scripts/nexus-deploy.sh'
+                sh 'chmod +x ./jenkins/scripts/02-nexus-deploy-jars.sh'
+                sh './jenkins/scripts/02-nexus-deploy-jars.sh'
             }
         }
 
@@ -45,37 +45,38 @@ pipeline {
             }
         }
 
-        stage('Deploy with docker compose') {
+        stage('Build Docker Images') {
             steps {
-                echo 'Deploying with Docker Compose...'
-                sh 'chmod +x ./jenkins/scripts/deploy-docker-compose.sh'
-                sh './jenkins/scripts/deploy-docker-compose.sh'
+                echo 'Building Docker images...'
+                sh 'chmod +x ./jenkins/scripts/03-build-docker.sh'
+                sh './jenkins/scripts/03-build-docker.sh'
             }
         }
 
-        // stage('Build Docker Images') {
-        //     steps {
-        //         echo 'Building Docker images...'
-        //         sh 'chmod +x ./jenkins/scripts/build-docker.sh'
-        //         sh './jenkins/scripts/build-docker.sh'
-        //     }
-        // }
+        stage('Push Docker Images to Nexus') {
+            steps {
+                echo 'Pushing Docker images to Nexus...'
+                sh 'chmod +x ./jenkins/scripts/04-nexus-deploy-docker-images.sh'
+                sh './jenkins/scripts/04-nexus-deploy-docker-images.sh'
+            }
+        }
 
-        // stage('Push Images to Minikube') {
-        //     steps {
-        //         echo 'Pushing Docker images to Minikube daemon...'
-        //         sh 'chmod +x ./jenkins/scripts/push-minikube.sh'
-        //         sh './jenkins/scripts/push-minikube.sh'
-        //     }
-        // }
+        stage('Deploy with docker compose') {
+            steps {
+                echo 'Deploying with Docker Compose...'
+                sh 'chmod +x ./jenkins/scripts/05-deploy-docker-compose.sh'
+                sh './jenkins/scripts/05-deploy-docker-compose.sh'
+            }
+        }
 
-        // stage('Deploy to Kubernetes') {
-        //     steps {
-        //         echo 'Deploying to Kubernetes...'
-        //         sh 'chmod +x ./jenkins/scripts/deploy-k8s.sh'
-        //         sh './jenkins/scripts/deploy-k8s.sh'
-        //     }
-        // }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                echo 'Deploying to Kubernetes...'
+                sh 'chmod +x ./jenkins/scripts/deploy-k8s.sh'
+                sh './jenkins/scripts/deploy-k8s.sh'
+            }
+        }
     }
 
     post {
