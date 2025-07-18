@@ -2,6 +2,9 @@
 
 set -e
 
+set -x
+
+export MINIKUBE_HOME=/home/melek
 export KUBECONFIG=/mnt/c/Users/lek/.kube/config
 
 echo "Deploying to Kubernetes..."
