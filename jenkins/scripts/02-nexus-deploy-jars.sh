@@ -2,6 +2,8 @@
 
 set -e
 
+set -x
+
 echo "Deploying artifacts to Nexus..."
 
-mvn deploy -DskipTests
+mvn deploy
