@@ -22,29 +22,37 @@ pipeline {
             }
         }
 
-        stage('Build Docker Images') {
+        stage('Deploy with docker compose') {
             steps {
-                echo 'Building Docker images...'
-                sh 'chmod +x ./jenkins/scripts/build-docker.sh'
-                sh './jenkins/scripts/build-docker.sh'
+                echo 'Deploying with Docker Compose...'
+                sh 'chmod +x ./jenkins/scripts/deploy-docker-compose.sh'
+                sh './jenkins/scripts/deploy-docker-compose.sh'
             }
         }
 
-        stage('Push Images to Minikube') {
-            steps {
-                echo 'Pushing Docker images to Minikube daemon...'
-                sh 'chmod +x ./jenkins/scripts/push-minikube.sh'
-                sh './jenkins/scripts/push-minikube.sh'
-            }
-        }
+        // stage('Build Docker Images') {
+        //     steps {
+        //         echo 'Building Docker images...'
+        //         sh 'chmod +x ./jenkins/scripts/build-docker.sh'
+        //         sh './jenkins/scripts/build-docker.sh'
+        //     }
+        // }
 
-        stage('Deploy to Kubernetes') {
-            steps {
-                echo 'Deploying to Kubernetes...'
-                sh 'chmod +x ./jenkins/scripts/deploy-k8s.sh'
-                sh './jenkins/scripts/deploy-k8s.sh'
-            }
-        }
+        // stage('Push Images to Minikube') {
+        //     steps {
+        //         echo 'Pushing Docker images to Minikube daemon...'
+        //         sh 'chmod +x ./jenkins/scripts/push-minikube.sh'
+        //         sh './jenkins/scripts/push-minikube.sh'
+        //     }
+        // }
+
+        // stage('Deploy to Kubernetes') {
+        //     steps {
+        //         echo 'Deploying to Kubernetes...'
+        //         sh 'chmod +x ./jenkins/scripts/deploy-k8s.sh'
+        //         sh './jenkins/scripts/deploy-k8s.sh'
+        //     }
+        // }
     }
 
     post {
