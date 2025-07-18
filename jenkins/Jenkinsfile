@@ -33,7 +33,7 @@ pipeline {
         stage('Deploy to Nexus') {
             steps {
                 echo 'Deploying JARs to Nexus...'
-                sh 'chmod +x ./jenkins/scripts/deploy_nexus.sh'
+                sh 'chmod +x ./jenkins/scripts/nexus-deploy.sh'
                 sh './jenkins/scripts/nexus-deploy.sh'
             }
         }
