@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: config-server
-        image: host.minikube.internal:5000/config-server:latest
+        image: localhost:5000/config-server:latest
         ports:
         - containerPort: 8888
         env:
