@@ -22,6 +22,21 @@ pipeline {
             }
         }
 
+        stage('Deploy to Nexus') {
+            steps {
+                echo 'Deploying JARs to Nexus...'
+                sh 'chmod +x ./jenkins/scripts/deploy_nexus.sh'
+                sh './jenkins/scripts/deploy_nexus.sh'
+            }
+        }
+
+        stage('Start zookeeper'){
+            steps {
+                echo 'Starting Zookeeper...'
+                sh 'docker compose up -d zookeeper'
+            }
+        }
+
         stage('Deploy with docker compose') {
             steps {
                 echo 'Deploying with Docker Compose...'
