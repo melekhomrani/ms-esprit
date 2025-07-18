@@ -41,7 +41,6 @@ logs/
 *.log
 
 # Environment files
-.env
 .env.*
 
 # Spring Boot specific
