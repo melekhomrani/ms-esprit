@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: ms-manufacturer
-        image: localhost:5000/ms-manufacturer:latest
+        image: melekhomrani/ms-esprit-ms-manufacturer:latest
         ports:
         - containerPort: 8083
         env:

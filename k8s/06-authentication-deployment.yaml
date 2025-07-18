@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: authentication
-        image: localhost:5000/authentication-app:latest
+        image: melekhomrani/ms-esprit-authentication-app:latest
         ports:
         - containerPort: 5050
         env:

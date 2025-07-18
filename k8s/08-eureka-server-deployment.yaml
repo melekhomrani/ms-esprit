@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: eureka-server
-        image: localhost:5000/eureka-server:latest
+        image: melekhomrani/ms-esprit-eureka-server:latest
         ports:
         - containerPort: 8761
         env:
