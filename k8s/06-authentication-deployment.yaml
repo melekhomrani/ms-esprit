@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: authentication
-        image: host.docker.internal:5000/authentication-app:latest
+        image: host.minikube.internal:5000/authentication-app:latest
         ports:
         - containerPort: 5050
         env:
