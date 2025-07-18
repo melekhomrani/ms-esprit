@@ -325,19 +325,19 @@ services:
         aliases:
           - grafana
 
-  nexus:
-    image: sonatype/nexus3:latest
-    container_name: nexus
-    ports:
-      - "8081:8081"
-      - "5000:5000"
-    volumes:
-      - nexus_data:/nexus-data
-    restart: unless-stopped
-    networks:
-      store-network:
-        aliases:
-          - nexus
+  # nexus:
+  #   image: sonatype/nexus3:latest
+  #   container_name: nexus
+  #   ports:
+  #     - "8081:8081"
+  #     - "5000:5000"
+  #   volumes:
+  #     - nexus_data:/nexus-data
+  #   restart: unless-stopped
+  #   networks:
+  #     store-network:
+  #       aliases:
+  #         - nexus
 
   mail-dev:
     container_name: mail-dev

@@ -14,6 +14,14 @@ pipeline {
                 checkout scm
             }
         }
+
+        stage('Start mail-dev') {
+            steps {
+                echo 'Starting mail-dev...'
+                sh 'docker compose up -d mail-dev'
+            }
+        }
+
         stage('Build JARs') {
             steps {
                 echo 'Building JARs...'
