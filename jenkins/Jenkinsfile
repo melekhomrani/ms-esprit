@@ -81,6 +81,16 @@ pipeline {
     post {
         success {
             echo 'Pipeline completed successfully. All services are built, deployed to Nexus, and running.'
+            mail to: 'melek@store.com',
+                subject: "Jenkins Pipeline Success: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """\
+                    The Jenkins pipeline for ${env.JOB_NAME} has completed successfully.
+
+                    Check details and console output:
+                    ${env.BUILD_URL}
+
+                    No action is required.
+                    """
         }
         failure {
             echo 'Pipeline failed.'
