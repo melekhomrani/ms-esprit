@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: gateway
-        image: melekhomrani/ms-esprit-gateway:latest
+        image: host.docker.internal:5000/ms-esprit-gateway:latest
         ports:
         - containerPort: 8989
         env:

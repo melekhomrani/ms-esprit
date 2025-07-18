@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: ms-product
-        image: melekhomrani/ms-esprit-ms-product:latest
+        image: host.docker.internal:5000/ms-esprit-ms-product:latest
         ports:
         - containerPort: 8084
         env:

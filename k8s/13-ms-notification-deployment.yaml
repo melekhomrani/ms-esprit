@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: ms-notification
-        image: melekhomrani/ms-esprit-ms-notification:latest
+        image: host.docker.internal:5000/ms-esprit-ms-notification:latest
         ports:
         - containerPort: 8040
         env:
